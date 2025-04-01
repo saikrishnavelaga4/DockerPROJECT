@@ -1,0 +1,22 @@
+node ('sai') {
+    stage ('git') {
+        git branch: 'main', url: 'https://github.com/saikrishnavelaga4/pet_shop.git'
+    }
+    stage ('maven') {
+        sh 'mvn clean install'
+    }
+    stage('docker-build'){
+        sh 'docker build -t saikrishnavelaga/petshop:${BUILD_NUMBER} .'
+    }
+    stage('deleting a container'){
+        sh 'docker rm -f mycontainer'
+    }
+    stage('dockerpush'){
+        withDockerRegistry(credentialsId: 'docker', toolName: 'docker', url: 'https://index.docker.io/v1/') {
+    sh 'docker push saikrishnavelaga/petshop:${BUILD_NUMBER}'
+}
+    }
+    stage('dockerrun'){
+        sh 'docker run -d --name mycontainer -p 8080:8080 saikrishnavelaga/petshop:${BUILD_NUMBER} '
+    }
+}
